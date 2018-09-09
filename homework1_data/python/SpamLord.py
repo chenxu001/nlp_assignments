@@ -9,19 +9,19 @@ my_e_pat.append('(\w*\.?\w+) ?@ ?(\w*\.?\w+).(edu|EDU)')
 my_e_pat.append('(\w+) WHERE (\w+) DOM edu')
 my_e_pat.append('(\w+)&#x40;(\w*\.?\w+)\.edu')
 my_e_pat.append('(\w*\.?\w+) \(followed by .+@(\w*\.?\w+)\.edu')
-my_e_pat.append('(\w\-.*)@(.*).-e-d-u')
+my_e_pat.append('(\w\-.*)@(.*).-e-d-u') # e.g.'d-l-w-h-@-s-t-a-n-f-o-r-d-.-e-d-u'
 my_e_pat.append('(\w+)@(\w+) dt com')
 my_e_pat.append('(\w+)@(\w+ \w+) edu')
 my_e_pat.append('(\w+)@(\w*;?\w+);edu')
-my_e_pat.append("'(\w+)\.edu','(\w+)'")
+my_e_pat.append("'(\w+)\.edu','(\w+)'") # e.g."('stanford.edu','jurafsky')"
 
 # phone number patterns
 my_p_pat = []
 my_p_pat.append('\((\d+)\) ?(\d+)\-(\d+)')
 my_p_pat.append(' (\d+)\-(\d+)\-(\d+)')
 my_p_pat.append('(\d+)\-(\d+)\-(\d+) ')
-my_p_pat.append('(\d+)\-(\d+)\-(\d+)\(')
-my_p_pat.append('\+\d+ (\d+) (\d+) ?\-?(\d+)')
+my_p_pat.append('(\d+)\-(\d+)\-(\d+)\(') # e.g.'650-725-4802(office)'
+my_p_pat.append('\+\d+ (\d+) (\d+) ?\-?(\d+)') # e.g.'+1 650 723 5666'
 
 
 """
