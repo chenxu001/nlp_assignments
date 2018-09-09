@@ -3,7 +3,20 @@ import os
 import re
 import pprint
 
-my_first_pat = '(\w+)@(\w+).edu'
+# email patterns
+my_e_pat = []
+my_e_pat.append('(\w*\.?\w+) ?@ ?(\w*\.?\w+).(edu|EDU)')
+my_e_pat.append('(\w+) WHERE (\w+) DOM edu')
+my_e_pat.append('(\w+)&#x40;(\w*\.?\w+)\.edu')
+my_e_pat.append('(\w*\.?\w+) \(followed by .+@(\w*\.?\w+)\.edu')
+my_e_pat.append('(\w+)@(\w+) dt com')
+my_e_pat.append('(\w+)@(\w+ \w+) edu')
+my_e_pat.append('(\w+)@(\w*;?\w+);edu')
+my_e_pat.append("'(\w+)\.edu','(\w+)'")
+
+# phone number patterns
+my_p_pat = []
+my_p_pat.append()
 
 """
 TODO
@@ -31,10 +44,27 @@ def process_file(name, f):
     # sys.stderr.write('[process_file]\tprocessing file: %s\n' % (path))
     res = []
     for line in f:
-        matches = re.findall(my_first_pat,line)
-        for m in matches:
-            email = '%s@%s.edu' % m
-            res.append((name,'e',email))
+        line = re.sub('-', '', line)
+        line = re.sub(' at ', '@', line)
+        line = re.sub(' dot ', '.', line)
+        for pat in my_e_pat:
+            matches = re.findall(pat,line)
+            for m in matches:
+                if m[0] == 'Server':
+                    continue
+                if pat == my_e_pat[-1]:
+                    email = '% s@%s.edu' % (m[-1], m[-2])
+                elif pat == my_e_pat[-2]:
+                    address = re.sub(';', '.', m[1])
+                    email ='% s@%s.edu' % (m[0], address)
+                elif pat == my_e_pat[-3]:
+                    address = re.sub(' ', '.', m[1])
+                    email ='% s@%s.edu' % (m[0], address)
+                elif pat == my_e_pat[-4]:
+                    email ='% s@%s.com' % (m[0], m[1])
+                else:
+                    email ='% s@%s.edu' % (m[0], m[1])
+                res.append((name,'e',email))
     return res
 
 """
@@ -48,8 +78,15 @@ def process_dir(data_path):
         if fname[0] == '.':
             continue
         path = os.path.join(data_path,fname)
-        f = open(path,'r')
-        f_guesses = process_file(fname, f)
+        try:
+            f = open(path,'r', encoding="utf-8")
+            f_guesses = process_file(fname, f)
+            f.close()
+        except:
+            f = open(path,'r', encoding="windows-1252")
+            f_guesses = process_file(fname, f)
+            f.close()
+
         guess_list.extend(f_guesses)
     return guess_list
 
@@ -62,9 +99,10 @@ this function returns a list of tuples of the canonical form:
 def get_gold(gold_path):
     # get gold answers
     gold_list = []
-    f_gold = open(gold_path,'r')
+    f_gold = open(gold_path,'r', encoding="utf-8")
     for line in f_gold:
         gold_list.append(tuple(line.strip().split('\t')))
+    f_gold.close()
     return gold_list
 
 """
@@ -89,13 +127,13 @@ def score(guess_list, gold_list):
     #pp.pprint(guess_set)
     #print 'Gold (%d): ' % len(gold_set)
     #pp.pprint(gold_set)
-    print 'True Positives (%d): ' % len(tp)
+    print ('True Positives (%d): ' % len(tp))
     pp.pprint(tp)
-    print 'False Positives (%d): ' % len(fp)
+    print ('False Positives (%d): ' % len(fp))
     pp.pprint(fp)
-    print 'False Negatives (%d): ' % len(fn)
+    print ('False Negatives (%d): ' % len(fn))
     pp.pprint(fn)
-    print 'Summary: tp=%d, fp=%d, fn=%d' % (len(tp),len(fp),len(fn))
+    print ('Summary: tp=%d, fp=%d, fn=%d' % (len(tp),len(fp),len(fn)))
 
 """
 You should not need to edit this function.
@@ -118,5 +156,5 @@ if __name__ == '__main__':
     elif (len(sys.argv) == 3):
         main(sys.argv[1],sys.argv[2])
     else:
-        print 'usage:\tSpamLord.py <data_dir> <gold_file>'
+        print ('usage:\tSpamLord.py <data_dir> <gold_file>')
         sys.exit(0)
