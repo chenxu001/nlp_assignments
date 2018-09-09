@@ -9,6 +9,7 @@ my_e_pat.append('(\w*\.?\w+) ?@ ?(\w*\.?\w+).(edu|EDU)')
 my_e_pat.append('(\w+) WHERE (\w+) DOM edu')
 my_e_pat.append('(\w+)&#x40;(\w*\.?\w+)\.edu')
 my_e_pat.append('(\w*\.?\w+) \(followed by .+@(\w*\.?\w+)\.edu')
+my_e_pat.append('(\w\-.*)@(.*).-e-d-u')
 my_e_pat.append('(\w+)@(\w+) dt com')
 my_e_pat.append('(\w+)@(\w+ \w+) edu')
 my_e_pat.append('(\w+)@(\w*;?\w+);edu')
@@ -16,7 +17,12 @@ my_e_pat.append("'(\w+)\.edu','(\w+)'")
 
 # phone number patterns
 my_p_pat = []
-my_p_pat.append()
+my_p_pat.append('\((\d+)\) ?(\d+)\-(\d+)')
+my_p_pat.append(' (\d+)\-(\d+)\-(\d+)')
+my_p_pat.append('(\d+)\-(\d+)\-(\d+) ')
+my_p_pat.append('(\d+)\-(\d+)\-(\d+)\(')
+my_p_pat.append('\+\d+ (\d+) (\d+) ?\-?(\d+)')
+
 
 """
 TODO
@@ -44,7 +50,6 @@ def process_file(name, f):
     # sys.stderr.write('[process_file]\tprocessing file: %s\n' % (path))
     res = []
     for line in f:
-        line = re.sub('-', '', line)
         line = re.sub(' at ', '@', line)
         line = re.sub(' dot ', '.', line)
         for pat in my_e_pat:
@@ -53,18 +58,28 @@ def process_file(name, f):
                 if m[0] == 'Server':
                     continue
                 if pat == my_e_pat[-1]:
-                    email = '% s@%s.edu' % (m[-1], m[-2])
+                    email = '%s@%s.edu' % (m[-1], m[-2])
                 elif pat == my_e_pat[-2]:
                     address = re.sub(';', '.', m[1])
-                    email ='% s@%s.edu' % (m[0], address)
+                    email ='%s@%s.edu' % (m[0], address)
                 elif pat == my_e_pat[-3]:
                     address = re.sub(' ', '.', m[1])
-                    email ='% s@%s.edu' % (m[0], address)
+                    email ='%s@%s.edu' % (m[0], address)
                 elif pat == my_e_pat[-4]:
-                    email ='% s@%s.com' % (m[0], m[1])
+                    email ='%s@%s.com' % (m[0], m[1])
+                elif pat == my_e_pat[-5]:
+                    address1 = re.sub('-', '', m[0])
+                    address2 = re.sub('-', '', m[1])
+                    email = '%s@%s.edu' % (address1, address2)
                 else:
-                    email ='% s@%s.edu' % (m[0], m[1])
+                    email ='%s@%s.edu' % (m[0], m[1])
                 res.append((name,'e',email))
+        
+        for pat in my_p_pat:
+            matches = re.findall(pat, line)
+            for m in matches:
+                phone = '%s-%s-%s' % (m[0], m[1], m[2])
+                res.append((name,'p',phone))
     return res
 
 """
