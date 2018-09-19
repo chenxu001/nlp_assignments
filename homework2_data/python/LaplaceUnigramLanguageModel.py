@@ -15,7 +15,7 @@ class LaplaceUnigramLanguageModel:
         """    
         # TODO your code here
         for sentence in corpus.corpus:            
-            for datum in sentence.data[1:-1]:
+            for datum in sentence.data:
                 token = datum.word
                 self.laplace_unigram_counts[token] += 1
                 self.total += 1
@@ -27,14 +27,14 @@ class LaplaceUnigramLanguageModel:
         # TODO your code here
         score = 0.0
         number_of_unseen = 0
-        for token in sentence[1:-1]:
+        for token in sentence:
             if self.laplace_unigram_counts[token] == 0:
                 number_of_unseen += 1
         if number_of_unseen > 0:
             for t in self.laplace_unigram_counts:
                 self.laplace_unigram_counts[t] += 1
             self.total += len(self.laplace_unigram_counts)            
-        for token in sentence[1:-1]:
+        for token in sentence:
             count = self.laplace_unigram_counts[token]
             score += math.log(count)
             score -= math.log(self.total)
