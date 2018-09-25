@@ -176,15 +176,16 @@ if __name__ == "__main__":
         sys.exit(2)
 
     try:
-        input = open(sys.argv[1],"r")
+        input1 = open(sys.argv[1],"r")
+        input2 = open(sys.argv[1],"r")
 
     except IOError:
         sys.stderr.write("ERROR: Cannot read inputfile %s.\n" % sys.argv[1])
         sys.exit(1)
-    counts = word_counts(open('./gene.train', 'r'))
+    counts = word_counts(input1)
     # Initialize a trigram counter
     counter = Hmm(3)
     # Collect counts
-    counter.train(input, counts)
+    counter.train(input2, counts)
     # Write the counts
     counter.write_counts(sys.stdout)
