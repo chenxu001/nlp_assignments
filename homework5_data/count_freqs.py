@@ -177,15 +177,15 @@ if __name__ == "__main__":
 
     try:
         input1 = open(sys.argv[1],"r")
-        input2 = open(sys.argv[1],"r")
 
     except IOError:
         sys.stderr.write("ERROR: Cannot read inputfile %s.\n" % sys.argv[1])
         sys.exit(1)
     counts = word_counts(input1)
+    input1.seek(0)
     # Initialize a trigram counter
     counter = Hmm(3)
     # Collect counts
-    counter.train(input2, counts)
+    counter.train(input1, counts)
     # Write the counts
     counter.write_counts(sys.stdout)
