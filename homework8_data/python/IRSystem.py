@@ -268,20 +268,18 @@ class IRSystem:
         words_in_query = set()
         for word in query:
             words_in_query.add(word)
-
+        
         for d, doc in enumerate(self.docs):
             words_in_doc = set(doc)
-            len_q = 0.0
             len_d = 0.0
             tfidf_q = {}
             for word in words_in_query.intersection(words_in_doc):
                 tfidf_q[word] = (1 + math.log10(query.count(word))) \
                 * math.log10(len(self.docs) / len(self.inv_index[word]))                
                 scores[d] += tfidf_q[word] * self.tfidf[word][d]
-                len_q += tfidf_q[word] ** 2
+            for word in words_in_doc:
                 len_d += self.tfidf[word][d] ** 2
-            if len_q != 0:
-                scores[d] = scores[d] / math.sqrt(len_q) / math.sqrt(len_d)
+            scores[d] = scores[d] / math.sqrt(len_d)
 
         # ------------------------------------------------------------------
 
