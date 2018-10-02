@@ -29,7 +29,7 @@ class IRSystem:
 
 
     def __read_raw_data(self, dirname):
-        print "Stemming Documents..."
+        print("Stemming Documents...")
 
         titles = []
         docs = []
@@ -44,7 +44,7 @@ class IRSystem:
 
         for i, filename in enumerate(filenames):
             title = title_pattern.search(filename).group(1)
-            print "    Doc %d of %d: %s" % (i+1, len(filenames), title)
+            print("    Doc %d of %d: %s" % (i+1, len(filenames), title))
             titles.append(title)
             contents = []
             f = open('%s/raw/%s' % (dirname, filename), 'r')
@@ -72,7 +72,7 @@ class IRSystem:
 
 
     def __read_stemmed_data(self, dirname):
-        print "Already stemmed!"
+        print("Already stemmed!")
         titles = []
         docs = []
 
@@ -111,7 +111,7 @@ class IRSystem:
         # NOTE: We cache stemmed documents for speed
         #       (i.e. write to files in new 'stemmed/' dir).
 
-        print "Reading in documents..."
+        print("Reading in documents...")
         # dict mapping file names to list of "words" (tokens)
         filenames = os.listdir(dirname)
         subdirs = os.listdir(dirname)
@@ -119,7 +119,7 @@ class IRSystem:
             titles, docs = self.__read_stemmed_data(dirname)
         else:
             titles, docs = self.__read_raw_data(dirname)
-
+        
         # Sort document alphabetically by title to ensure we have the proper
         # document indices when referring to them.
         ordering = [idx for idx, title in sorted(enumerate(titles),
@@ -146,13 +146,17 @@ class IRSystem:
         #       NOTE that you probably do *not* want to store a value for every
         #       word-document pair, but rather just for those pairs where a
         #       word actually occurs in the document.
-        print "Calculating tf-idf..."
+        print("Calculating tf-idf...")
         self.tfidf = {}
         for word in self.vocab:
             for d in range(len(self.docs)):
                 if word not in self.tfidf:
                     self.tfidf[word] = {}
                 self.tfidf[word][d] = 0.0
+            for d in self.inv_index[word]:
+                self.tfidf[word][d] = (1 + math.log10(self.docs[d].count(word))) \
+                * math.log10(len(self.docs) / len(self.inv_index[word]))
+                
 
         # ------------------------------------------------------------------
 
@@ -162,6 +166,7 @@ class IRSystem:
         # TODO: Return the tf-idf weigthing for the given word (string) and
         #       document index.
         tfidf = 0.0
+        tfidf = self.tfidf[word][document]
         # ------------------------------------------------------------------
         return tfidf
 
@@ -180,7 +185,7 @@ class IRSystem:
         """
         Build an index of the documents.
         """
-        print "Indexing..."
+        print("Indexing...")
         # ------------------------------------------------------------------
         # TODO: Create an inverted index.
         #       Granted this may not be a linked list as in a proper
@@ -192,6 +197,9 @@ class IRSystem:
         inv_index = {}
         for word in self.vocab:
             inv_index[word] = []
+        for d in range(len(self.docs)):
+            for word in set(self.docs[d]):
+                inv_index[word].append(d)
 
         self.inv_index = inv_index
 
@@ -205,7 +213,7 @@ class IRSystem:
         """
         # ------------------------------------------------------------------
         # TODO: return the list of postings for a word.
-        posting = []
+        posting = [i for i in self.inv_index[word]]
 
         return posting
         # ------------------------------------------------------------------
@@ -234,7 +242,11 @@ class IRSystem:
         # Right now this just returns all the possible documents!
         docs = []
         for d in range(len(self.docs)):
-            docs.append(d)
+            i = 0
+            while i < len(query) and d in self.inv_index[query[i]]:
+                i += 1
+            if i == len(query):
+                docs.append(d)
 
         # ------------------------------------------------------------------
 
@@ -259,8 +271,17 @@ class IRSystem:
 
         for d, doc in enumerate(self.docs):
             words_in_doc = set(doc)
-            scores[d] = len(words_in_query.intersection(words_in_doc)) \
-                    / float(len(words_in_query.union(words_in_doc)))
+            len_q = 0.0
+            len_d = 0.0
+            tfidf_q = {}
+            for word in words_in_query.intersection(words_in_doc):
+                tfidf_q[word] = (1 + math.log10(query.count(word))) \
+                * math.log10(len(self.docs) / len(self.inv_index[word]))                
+                scores[d] += tfidf_q[word] * self.tfidf[word][d]
+                len_q += tfidf_q[word] ** 2
+                len_d += self.tfidf[word][d] ** 2
+            if len_q != 0:
+                scores[d] = scores[d] / math.sqrt(len_q) / math.sqrt(len_d)
 
         # ------------------------------------------------------------------
 
@@ -307,7 +328,7 @@ class IRSystem:
 
 
 def run_tests(irsys):
-    print "===== Running tests ====="
+    print("===== Running tests =====")
 
     ff = open('../data/queries.txt')
     questions = [xx.strip() for xx in ff.readlines()]
@@ -326,7 +347,7 @@ def run_tests(irsys):
         soln = json.loads(solutions[part])
 
         if part == 0:     # inverted index test
-            print "Inverted Index Test"
+            print("Inverted Index Test")
             words = prob.split(", ")
             for i, word in enumerate(words):
                 num_total += 1
@@ -335,7 +356,7 @@ def run_tests(irsys):
                     num_correct += 1
 
         elif part == 1:   # boolean retrieval test
-            print "Boolean Retrieval Test"
+            print("Boolean Retrieval Test")
             queries = prob.split(", ")
             for i, query in enumerate(queries):
                 num_total += 1
@@ -344,7 +365,7 @@ def run_tests(irsys):
                     num_correct += 1
 
         elif part == 2:   # tfidf test
-            print "TF-IDF Test"
+            print("TF-IDF Test")
             queries = prob.split("; ")
             queries = [xx.split(", ") for xx in queries]
             queries = [(xx[0], int(xx[1])) for xx in queries]
@@ -356,7 +377,7 @@ def run_tests(irsys):
                     num_correct += 1
 
         elif part == 3:   # cosine similarity test
-            print "Cosine Similarity Test"
+            print ("Cosine Similarity Test")
             queries = prob.split(", ")
             for i, query in enumerate(queries):
                 num_total += 1
@@ -378,7 +399,7 @@ def run_tests(irsys):
         else:
             points = 0
 
-        print "    Score: %d Feedback: %s" % (points, feedback)
+        print("    Score: %d Feedback: %s" % (points, feedback))
 
 
 def main(args):
@@ -391,10 +412,10 @@ def main(args):
         run_tests(irsys)
     else:
         query = " ".join(args)
-        print "Best matching documents to '%s':" % query
+        print("Best matching documents to '%s':" % query)
         results = irsys.query_rank(query)
         for docId, score in results:
-            print "%s: %e" % (irsys.titles[docId], score)
+            print("%s: %e" % (irsys.titles[docId], score))
 
 
 if __name__ == '__main__':
