@@ -34,7 +34,7 @@ def pretty_print_tree(tree):
     Print out a tree with nice formatting.
     """
     format_tree(tree)
-    print pprint.pformat(tree)
+    print(pprint.pformat(tree))
 
 def main(parse_file):
     for l in open(parse_file):

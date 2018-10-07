@@ -3,7 +3,7 @@
 __author__="Alexander Rush <srush@csail.mit.edu>"
 __date__ ="$Sep 12, 2012"
 
-import sys, re, json, itertools
+import sys, re, json
 
 """
 Evaluate a set of test parses versus the gold set. 
@@ -28,13 +28,13 @@ def convert_to_spans(tree, start, set):
         return start
 
 def output_header():
-    print "%10s    %10s    %10s    %10s     %10s"%("Type", "Total", "Precision", "Recall", "F1 Score")
-    print "==============================================================="
+    print("%10s    %10s    %10s    %10s     %10s"%("Type", "Total", "Precision", "Recall", "F1 Score"))
+    print("===============================================================")
 
 def output_row(name, right, total_gold, total_test):
     p = right / float(total_test)
     r = right / float(total_gold)
-    print "%10s                %4d         %0.3f                %0.3f                %0.3f"%(name, total_gold, p, r, (2 * p * r) / float(p + r))
+    print("%10s                %4d         %0.3f                %0.3f                %0.3f"%(name, total_gold, p, r, (2 * p * r) / float(p + r)))
 
 def main(key_file, prediction_file):
     right = 0
@@ -44,7 +44,7 @@ def main(key_file, prediction_file):
     nt_total_gold = {}
     nt_total_test = {}
 
-    for l1, l2 in itertools.izip(open(key_file), open(prediction_file)):
+    for l1, l2 in zip(open(key_file), open(prediction_file)):
         set1 = set()
         set2 = set()
         tree1 = json.loads(l1)
@@ -71,13 +71,13 @@ def main(key_file, prediction_file):
         total_test += len(set2)
         right += len(set1 & set2)
     output_header()
-    N = nt_right.keys()
+    N = list(nt_right.keys())
     N.sort()
     for nt in N:
         output_row(nt, nt_right[nt], 
                              nt_total_gold.get(nt, 0), 
                              nt_total_test.get(nt, 0))
-    print
+    print()
     output_row("total", right, total_gold, total_test)
         
 
